@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">🪙 コインクリッカー</string>
+    <string name="coins_label">コイン</string>
+    <string name="coins_per_second">/秒</string>
+    <string name="upgrades_label">アップグレード</string>
+    <string name="buy_button">購入</string>
+    <string name="owned_label">所持:</string>
+    <string name="owned_unit">個</string>
+</resources>
