@@ -1,5 +1,9 @@
 # devdroidai-agent-test
 
+**このプロジェクトについて**: DevDroidAI Phase α の agent worker E2E テスト用リポジトリです。
+Idle Game をベースに、Foreground Service を使った継続的なバックグラウンド処理機能をテストします。
+Phase 2 dogfood の結果（B+D PASS rate 60%）からの改善を Phase α で検証する baseline として機能します。
+
 DevDroidAI Phase α agent worker E2E test target。Phase 2 dogfood と Phase α dogfood の B+D PASS rate 比較用 baseline。
 
 ## baseline 内容
