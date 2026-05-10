@@ -1,5 +1,10 @@
 package com.example.idlegame
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
@@ -100,14 +105,42 @@ class GameViewModel : ViewModel() {
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
 
-    init {
-        // 毎秒コイン自動生成
+    private var coinGenerationReceiver: BroadcastReceiver? = null
+    private var context: Context? = null
+
+    fun initialize(appContext: Context) {
+        this.context = appContext
+        startCoinGeneration()
+    }
+
+    private fun startCoinGeneration() {
+        // 毎秒コイン自動生成（UIスレッドで実行）
         viewModelScope.launch {
             while (isActive) {
                 delay(1000)
                 _state.value = _state.value.copy(
                     coins = _state.value.coins + _state.value.coinsPerSecond
                 )
+            }
+        }
+
+        // Foreground Service からのブロードキャストを受信
+        context?.let { appContext ->
+            coinGenerationReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    // Service からのコイン生成通知
+                    if (intent?.action == ACTION_COIN_GENERATION) {
+                        // ViewModel のコルーチンで処理されているので、ここでは追加の処理は不要
+                        // Service が実際に生成している場合の同期用
+                    }
+                }
+            }
+
+            val filter = IntentFilter(ACTION_COIN_GENERATION)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                appContext.registerReceiver(coinGenerationReceiver, filter, Context.RECEIVER_EXPORTED)
+            } else {
+                appContext.registerReceiver(coinGenerationReceiver, filter)
             }
         }
     }
@@ -136,5 +169,29 @@ class GameViewModel : ViewModel() {
             coinsPerSecond = newCoinsPerSec,
             coinsPerClick = newCoinsPerClick
         )
+    }
+
+    fun startBackgroundGeneration() {
+        context?.let {
+            val intent = Intent(it, CoinGenerationService::class.java)
+            intent.action = CoinGenerationService.ACTION_START
+            it.startService(intent)
+        }
+    }
+
+    fun stopBackgroundGeneration() {
+        context?.let {
+            val intent = Intent(it, CoinGenerationService::class.java)
+            intent.action = CoinGenerationService.ACTION_STOP
+            it.startService(intent)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        coinGenerationReceiver?.let { receiver ->
+            context?.unregisterReceiver(receiver)
+        }
+        stopBackgroundGeneration()
     }
 }

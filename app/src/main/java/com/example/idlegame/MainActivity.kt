@@ -37,11 +37,21 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // ViewModel を初期化してバックグラウンド生成を開始
+        viewModel.initialize(applicationContext)
+        viewModel.startBackgroundGeneration()
+        
         setContent {
             IdleGameTheme {
                 IdleGameScreen(viewModel)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // アプリ終了時にバックグラウンド生成を停止
+        viewModel.stopBackgroundGeneration()
     }
 }
 
